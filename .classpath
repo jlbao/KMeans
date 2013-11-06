@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="lib" path="/home/ubuntu/Workspace/hadoop-1.1.0/hadoop-ant-1.1.0.jar"/>
+	<classpathentry kind="lib" path="/home/ubuntu/Workspace/hadoop-1.1.0/hadoop-client-1.1.0.jar"/>
+	<classpathentry kind="lib" path="/home/ubuntu/Workspace/hadoop-1.1.0/hadoop-core-1.1.0.jar"/>
+	<classpathentry kind="lib" path="/home/ubuntu/Workspace/hadoop-1.1.0/hadoop-examples-1.1.0.jar"/>
+	<classpathentry kind="lib" path="/home/ubuntu/Workspace/hadoop-1.1.0/hadoop-minicluster-1.1.0.jar"/>
+	<classpathentry kind="lib" path="/home/ubuntu/Workspace/hadoop-1.1.0/hadoop-test-1.1.0.jar"/>
+	<classpathentry kind="lib" path="/home/ubuntu/Workspace/hadoop-1.1.0/hadoop-tools-1.1.0.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
