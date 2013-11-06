@@ -11,6 +11,16 @@ public class Point {
 		this.y = y;
 	}
 	
+	// parse line from lines in hdfs file
+	public Point(String str){
+		String[] s = str.split(",");
+		this.x = Double.parseDouble(s[0]);
+		this.y = Double.parseDouble(s[1]);
+	}
+	
+	
+	
+	
 	public Point getNearestCentroid(ArrayList<Point> centroids){
 		Point nearestCentroid = centroids.get(0); 
 		double minDistance = getDistance(nearestCentroid, this);
@@ -24,9 +34,15 @@ public class Point {
 		return nearestCentroid;
 	}
 	
+	// to make the point represented as the format of (x,y) in order to transmit in Map and reduce
+	@Override
+	public String toString(){
+		return x + "," + y;
+	}
+	
+	
 	double getDistance(Point p1, Point p2){
 		return Math.sqrt(Math.pow(p1.x - p2.x, 2) - Math.pow(p1.y - p2.y, 2));
 	}
-	
 	
 }
