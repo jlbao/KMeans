@@ -3,21 +3,23 @@ package org;
 import java.util.ArrayList;
 
 public class Point {
-	double x;
-	double y;
-	
-	public Point(double x, double y){
-		this.x = x;
-		this.y = y;
+	// list stores the values in all dimensions
+	ArrayList<Double> list;
+
+	public Point(ArrayList<Double> list){
+		this.list = list;
 	}
 	
 	// parse line from lines in hdfs file
 	public Point(String str){
+		list = new ArrayList<Double>();
 		String[] s = str.split(",");
-		this.x = Double.parseDouble(s[0]);
-		this.y = Double.parseDouble(s[1]);
+		for(String val : s){
+			list.add(Double.parseDouble(val));
+		}
 	}
 	
+	// get the nearest centroid
 	public Point getNearestCentroid(ArrayList<Point> centroids){
 		Point nearestCentroid = centroids.get(0); 
 		double minDistance = getDistance(nearestCentroid, this);
@@ -34,11 +36,19 @@ public class Point {
 	// to make the point represented as the format of (x,y) in order to transmit from Mapper to reducer
 	@Override
 	public String toString(){
-		return x + "," + y;
+		String str = "";
+		for(int i = 0; i < list.size() - 1; i++)
+			str += list.get(i) + ",";
+		return str + list.get(list.size() - 1);
 	}
 
+	// p1 and p2 should have same number of dimensions
 	public static double getDistance(Point p1, Point p2){
-		return Math.sqrt(Math.pow(p1.x - p2.x, 2) - Math.pow(p1.y - p2.y, 2));
+		double val = 0.0;
+		for(int i = 0; i < p1.list.size(); i++){
+			val += Math.pow(p1.list.get(i) - p2.list.get(i), 2);
+		}
+		return Math.sqrt(val);
 	}
 	
 }

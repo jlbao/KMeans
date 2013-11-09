@@ -1,0 +1,11 @@
+<config>
+	<k>10</k>
+	<pointNum>1000</pointNum>
+	<pointRange>50000</pointRange>
+	<isStopIterationByCount>false</isStopIterationByCount>
+	<iterationCount>10</iterationCount>
+	<stopIterationThreshold>1.0</stopIterationThreshold>
+	<initCentroidPath>data/initCentroids</initCentroidPath>
+	<newCentroidPath>data/newCentroids</newCentroidPath>
+	<dimensionNum>2</dimensionNum>
+</config>

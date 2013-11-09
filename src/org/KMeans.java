@@ -24,6 +24,12 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 
+/*
+ * KMeans algorithm
+ * Can iterate both according to iteration times and threshold
+ */
+
+
 public class KMeans extends Configured implements Tool{
 	public static class Map extends Mapper<LongWritable, Text, Text, Text>{
 		
@@ -32,23 +38,22 @@ public class KMeans extends Configured implements Tool{
 		@Override 
 		public void setup(Context context){
 			//get centroids from cache file
-			 try
-	            {
-				 	centroids = new ArrayList<Point>();
-					Path[] caches = DistributedCache.getLocalCacheFiles(context.getConfiguration());
-					if(caches == null || caches.length <= 0){
-						System.exit(1);
-					}
-					BufferedReader br = new BufferedReader(new FileReader(caches[0].toString()));
-					String line;
-					while((line = br.readLine()) != null){
-						Point centroid = new Point(line);
-						centroids.add(centroid);   
-					}
-					br.close();
-	            }catch(Exception e){
-	            	e.printStackTrace();
-	            }
+			 try{
+				centroids = new ArrayList<Point>();
+				Path[] caches = DistributedCache.getLocalCacheFiles(context.getConfiguration());
+				if(caches == null || caches.length <= 0){
+					System.exit(1);
+				}
+				BufferedReader br = new BufferedReader(new FileReader(caches[0].toString()));
+				String line;
+				while((line = br.readLine()) != null){
+					Point centroid = new Point(line);
+					centroids.add(centroid);   
+				}
+				br.close();
+			 }catch(Exception e){
+            	e.printStackTrace();
+			 }
 		}
 		
 		// map output: key is the nearest centroid, value is the point
@@ -64,20 +69,26 @@ public class KMeans extends Configured implements Tool{
 	public static class Combine extends Reducer<Text, Text, Text, Text> {
 		// the key of the combiner output is centroid, 
 		// the value of the output is the count of the nearest points and the sum x and y
-		// format (key, value) is like (centroid, (count, totalX, totalY))
+		// format (key, value) is like (centroid, (count, totalX, totalY, totalZ ...))
 		public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
 			Iterator<Text> iter = values.iterator();
 			int count = 0;
-			double totalX = 0;
-			double totalY = 0;
+			ArrayList<Double> list = new ArrayList<Double>();
 			while(iter.hasNext()){
 				String str = iter.next().toString();
 				Point p = new Point(str);
-				totalX += p.x;
-				totalY += p.y;
+				if(list.size() == 0){
+					for(int i = 0; i < p.list.size(); i++){
+						list.add(p.list.get(i));
+					}	
+				}else{
+					for(int i = 0; i < p.list.size(); i++){
+						list.set(i, list.get(i) + p.list.get(i));
+					}
+				}
 				count++;
 			}	
-			context.write(key, new Text(count + ";" + new Point(totalX, totalY).toString()));
+			context.write(key, new Text(count + ";" + new Point(list).toString()));
 		}
 	}
 	
@@ -85,18 +96,28 @@ public class KMeans extends Configured implements Tool{
 		public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
 			Iterator<Text> iter = values.iterator();
 			int count = 0;
-			double totalX = 0;
-			double totalY = 0;
+			ArrayList<Double> total = new ArrayList<Double>();
 			while(iter.hasNext()){
 				String str = iter.next().toString();
 				String[] s = str.split(";");
 				count += Integer.parseInt(s[0]);
-				s = s[1].split(",");
-				totalX += Double.parseDouble(s[0]);
-				totalY += Double.parseDouble(s[1]);
+				Point p = new Point(s[1]);
+				if(total.size() == 0){
+					for(int i = 0; i < p.list.size(); i++){
+						total.add(p.list.get(i));
+					}	
+				}else{
+					for(int i = 0; i < p.list.size(); i++){
+						total.set(i, total.get(i) + p.list.get(i));
+					}
+				}
 			}
 
-			Point newCentroid = new Point(totalX / count, totalY / count);
+			for(int i = 0; i < total.size(); i++){
+				total.set(i, total.get(i) / count);
+			}
+			
+			Point newCentroid = new Point(total);
 			context.write(key, new Text(newCentroid.toString()));
 		}
 	}
@@ -213,6 +234,9 @@ public class KMeans extends Configured implements Tool{
 	
 	public static void main(String[] args) {
 		try{
+			// make configuration(load configuration from config.xml)
+			Config.makeConfiguration();
+			
 			int i = 0;
 			int iterationCount = getIterationCount();
 			

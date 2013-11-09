@@ -8,8 +8,12 @@ import java.util.Random;
 
 public class CreateDataset {
 
+	/*
+	 * Create Point and initCentroid file
+	 */
 	public static void main(String[] args){
 		try {
+			Config.makeConfiguration();
 			ArrayList<Point> initCentroids = new ArrayList<Point>();
 			if(writeInitPoints(initCentroids) && writeInitCentroids(initCentroids))
 				System.out.println("done");
@@ -61,14 +65,14 @@ public class CreateDataset {
 		return true;
 	}
 	
-	
+	// get random point range from
 	public static Point getRandomPoint(){
 		Random rand = new Random();
-		double x = rand.nextInt(50000) + rand.nextDouble();
-		double y = rand.nextInt(50000) + rand.nextDouble();
-		return new Point(x, y);
+		ArrayList<Double> list = new ArrayList<Double>();
+		for(int i = 0; i < Config.getDimensionNum(); i++){
+			list.add(rand.nextInt(Config.getPointRange()) + rand.nextDouble());
+		}
+		return new Point(list);
 	}
-	
-	
 	
 }
