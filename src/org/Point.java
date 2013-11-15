@@ -15,11 +15,15 @@ public class Point {
         
         // parse line from lines in hdfs file
         public Point(String str){
-                list = new ArrayList<Double>();
-                String[] s = str.split(",");
-                for(String val : s){
-                        list.add(Double.parseDouble(val));
-                }
+            list = new ArrayList<Double>();
+            String[] s = str.split(";");
+            if(s.length == 1) // to prevent strange exception
+            	s = s[0].split(",");
+            else
+            	s = s[1].split(",");
+            for(String val : s){
+                    list.add(Double.parseDouble(val));
+            }
         }
         
         // get the nearest centroid
@@ -43,12 +47,12 @@ public class Point {
         		for(Entry<Point, String> entry : set){
         			nearestCentroid = entry.getKey();
         		}
-                double minDistance = getDistance(nearestCentroid, this);
+                double maxDistance = getDistance(nearestCentroid, this);
                 for(Entry<Point, String> entry : set){
                     double d1 = getDistance(entry.getKey(), this);
-                    if(d1 < minDistance){
-                            nearestCentroid = entry.getKey();
-                            minDistance = d1;
+                    if(d1 > maxDistance){
+                        nearestCentroid = entry.getKey();
+                        maxDistance = d1;
                     }
                 }
                 return nearestCentroid;
@@ -67,15 +71,17 @@ public class Point {
 
         
     // p1 and p2 should have same number of dimensions
-    public static double getDistance(Point p1, Point p2){
-        double val = 0.0;
-        for(int i = 0; i < p1.list.size(); i++){
-                val += Math.pow(p1.list.get(i) - p2.list.get(i), 2);
-        }
-        return Math.sqrt(val);
-    }
+        /*
+		    public static double getDistance(Point p1, Point p2){
+		        double val = 0.0;
+		        for(int i = 0; i < p1.list.size(); i++){
+		                val += Math.pow(p1.list.get(i) - p2.list.get(i), 2);
+		        }
+		        return Math.sqrt(val);
+		    }
+         */
         
-        /* this is the task 3 distance calculation version
+        //this is the task 3 distance calculation version
         // p1 and p2 should have same number of dimensions
         public static double getDistance(Point p1, Point p2){
                 double up = 0;
@@ -90,5 +96,5 @@ public class Point {
                 return result;
         
         }
-        */
+        
 }
