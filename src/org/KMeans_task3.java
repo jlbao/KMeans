@@ -6,7 +6,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -30,16 +33,15 @@ import org.apache.hadoop.util.Tool;
  */
 
 
-public class KMeans extends Configured implements Tool{
+public class KMeans_task3 extends Configured implements Tool{
 	public static class Map extends Mapper<LongWritable, Text, Text, Text>{
 		
-		ArrayList<Point> centroids;
-		
+		HashMap<Point, String> centroids; // key is the centroid, value is the sequence number
 		@Override 
 		public void setup(Context context){
 			//get centroids from cache file
 			 try{
-				centroids = new ArrayList<Point>();
+				centroids = new HashMap<Point, String>();
 				Path[] caches = DistributedCache.getLocalCacheFiles(context.getConfiguration());
 				if(caches == null || caches.length <= 0){
 					System.exit(1);
@@ -47,8 +49,9 @@ public class KMeans extends Configured implements Tool{
 				BufferedReader br = new BufferedReader(new FileReader(caches[0].toString()));
 				String line;
 				while((line = br.readLine()) != null){
-					Point centroid = new Point(line);
-					centroids.add(centroid);   
+					String[] data = line.split(":");
+					Point centroid = new Point(data[1]);// data[0] is the sequence number, data[1] is all the dimensions
+					centroids.put(centroid, data[0]);   
 				}
 				br.close();
 			 }catch(Exception e){
@@ -62,7 +65,8 @@ public class KMeans extends Configured implements Tool{
 				
 				Point p = new Point(value.toString());
 				Point nearestCentroid = p.getNearestCentroid(centroids);
-				context.write(new Text(nearestCentroid.toString()), new Text(p.toString()));
+				// put the sequence number before the old centroid
+				context.write(new Text(centroids.get(nearestCentroid) + ":" + nearestCentroid.toString()), new Text(p.toString()));
 			}
 		}
 		
@@ -128,7 +132,7 @@ public class KMeans extends Configured implements Tool{
 	}
 	
 	public static void jobConfig(Job job) throws Exception{
-		job.setJarByClass(KMeans.class);
+		job.setJarByClass(KMeans_task3.class);
 		
 		job.setMapOutputKeyClass(Text.class);
 		job.setMapOutputValueClass(Text.class);
@@ -152,7 +156,7 @@ public class KMeans extends Configured implements Tool{
 		job.setOutputFormatClass(TextOutputFormat.class);
 	}
 	
-	// this is used to decide if we still need another iternation based on the new centroid and the old centroid
+	// this is used to decide if we still need another iteration based on the new centroid and the old centroid
 	static boolean needIteration() throws Exception{
 		File file = new File(Config.getNewCentroidPath());
 		if(!file.exists())
@@ -161,7 +165,7 @@ public class KMeans extends Configured implements Tool{
 		String line = "";
 		while((line = reader.readLine()) != null){
 			String[] str = line.split("\t");
-			Point prevPoint = new Point(str[0]);
+			Point prevPoint = new Point(str[0].split(":")[1]);
 			Point newPoint = new Point(str[1]);
 			if(Point.getDistance(prevPoint, newPoint) > Config.getStopIterationThreshold()){
 				reader.close();
@@ -183,12 +187,13 @@ public class KMeans extends Configured implements Tool{
 		file.setExecutable(false);
 		
 		BufferedReader reader = new BufferedReader(new FileReader(file));
-		ArrayList<Point> list = new ArrayList<Point>();
+		HashMap<Point, String> table = new HashMap<Point, String>(); // key is the point, value is the sequence number
 		String line = "";
 		while((line = reader.readLine()) != null){
 			String[] str = line.split("\t");
+			String[] s = str[0].split(":"); // parse the sequence number, which is str[0]
 			Point newPoint = new Point(str[1]);
-			list.add(newPoint);
+			table.put(newPoint, s[0]);
 		}
 		reader.close();
 		
@@ -196,12 +201,20 @@ public class KMeans extends Configured implements Tool{
 		
 		FileWriter fw = new FileWriter(file.getAbsoluteFile());
 		BufferedWriter bw = new BufferedWriter(fw);
+		ArrayList<String> outputList = new ArrayList<String>();
+			
+		Set<Entry<Point,String>> set = table.entrySet();
 		
-		for(int i = 0 ; i < list.size() - 1; i++){
-			Point p = list.get(i);
-			bw.write(p.toString() + "\n");
+		for(Entry<Point,String> entry : set){
+			outputList.add(entry.getValue() + ":" + entry.getKey().toString());
+			//bw.write(p.toString() + "\n");
 		}
-		bw.write(list.get(list.size() - 1).toString());
+		
+		for(int i = 0; i < outputList.size() - 1; i++){
+			bw.write(outputList.get(i) + "\n");
+		}
+		
+		bw.write(outputList.get(outputList.size() - 1));
 		bw.close();
 		
 		// delete the .crc file because FSInputChecker will check .crc file,
@@ -240,7 +253,6 @@ public class KMeans extends Configured implements Tool{
 			int i = 0;
 			int iterationCount = getIterationCount();
 			boolean iterationFlag = true;
-			
 			while(i < iterationCount && iterationFlag){
 				//set up the current job configuration
 				Configuration conf = new Configuration();
@@ -248,8 +260,8 @@ public class KMeans extends Configured implements Tool{
 				setupData(conf, fs, i);
 				
 				// run job
-				Job job = new Job(conf, "KMeans");
-				KMeans.jobConfig(job);
+				Job job = new Job(conf, "KMeans_task3");
+				KMeans_task3.jobConfig(job);
 				job.waitForCompletion(true);
 				
 				// copy the output file to local file system
