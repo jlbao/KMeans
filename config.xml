@@ -1,7 +1,7 @@
 <config>
-	<k>10</k>
-	<pointNum>1000</pointNum>
-	<pointRange>50000</pointRange>
+	<k>100</k>
+	<pointNum>500000</pointNum>
+	<pointRange>10000000</pointRange>
 	<isStopIterationByCount>false</isStopIterationByCount>
 	<iterationCount>10</iterationCount>
 	<stopIterationThreshold>1.0</stopIterationThreshold>

@@ -69,7 +69,7 @@ public class KMeans extends Configured implements Tool{
 	public static class Combine extends Reducer<Text, Text, Text, Text> {
 		// the key of the combiner output is centroid, 
 		// the value of the output is the count of the nearest points and the sum x and y
-		// format (key, value) is like (centroid, (count, totalX, totalY, totalZ ...))
+		// format (key, value) is like (centroid, (count; totalX, totalY, totalZ ...))
 		public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
 			Iterator<Text> iter = values.iterator();
 			int count = 0;
