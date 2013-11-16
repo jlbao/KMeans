@@ -163,7 +163,7 @@ public class KMeans extends Configured implements Tool{
 			String[] str = line.split("\t");
 			Point prevPoint = new Point(str[0]);
 			Point newPoint = new Point(str[1]);
-			if(Point.getDistance(prevPoint, newPoint) > Config.getStopIterationThreshold()){
+			if(Point.getDistance(prevPoint, newPoint, true) > Config.getStopIterationThreshold()){
 				reader.close();
 				return true;
 			}
@@ -262,8 +262,10 @@ public class KMeans extends Configured implements Tool{
 				
 				// update the newCentroid data file
 				updateNewCentroidFile();
+				System.out.println("iteration: " + i);
 		        i++;
 			}
+			System.out.println("iteration stops at " + i + " times");
 		}catch(Exception e){
 			e.printStackTrace();
 		}

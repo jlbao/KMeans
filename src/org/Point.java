@@ -29,9 +29,9 @@ public class Point {
         // get the nearest centroid
         public Point getNearestCentroid(ArrayList<Point> centroids){
                 Point nearestCentroid = centroids.get(0);
-                double minDistance = getDistance(nearestCentroid, this);
+                double minDistance = getDistance(nearestCentroid, this, true);
                 for(Point point : centroids){
-                        double d1 = getDistance(point, this);
+                        double d1 = getDistance(point, this, true);
                         if(d1 < minDistance){
                                 nearestCentroid = point;
                                 minDistance = d1;
@@ -70,16 +70,15 @@ public class Point {
         }
 
         
-    // p1 and p2 should have same number of dimensions
-        /*
-		    public static double getDistance(Point p1, Point p2){
-		        double val = 0.0;
-		        for(int i = 0; i < p1.list.size(); i++){
-		                val += Math.pow(p1.list.get(i) - p2.list.get(i), 2);
-		        }
-		        return Math.sqrt(val);
-		    }
-         */
+        // p1 and p2 should have same number of dimensions, task 2's distance calculation
+	    public static double getDistance(Point p1, Point p2, boolean isFromtask2){
+	        double val = 0.0;
+	        for(int i = 0; i < p1.list.size(); i++){
+	                val += Math.pow(p1.list.get(i) - p2.list.get(i), 2);
+	        }
+	        return Math.sqrt(val);
+	    }
+         
         
         //this is the task 3 distance calculation version
         // p1 and p2 should have same number of dimensions
