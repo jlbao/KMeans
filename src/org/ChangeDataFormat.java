@@ -5,81 +5,98 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
+import java.util.HashMap;
+import java.util.Map.Entry;
 
 public class ChangeDataFormat {
 
 	/**
-	 * @param args
+	 * change the data format to make 
 	 */
-	public static void main(String[] args) throws Exception {
-		//pullDataFromServer();
-		//generateInitCentroids();
-		System.out.println(getDimensionCount());
-    }
 	
-	public static int getDimensionCount() throws Exception{
-		File pointFile = new File("points");
-		BufferedReader fr = new BufferedReader(new FileReader(pointFile));
-		
-		String inputLine;
-		int dimensionCount = 0;
-		while((inputLine = fr.readLine()) != null){
-			dimensionCount = inputLine.split(",").length;
-			break;
-		}
-		fr.close();
-		return dimensionCount;
-	}
+	static HashMap<Integer, Point> newCentroids; // key is the cluster ID, value is the centroid dimensions
 	
-	
-	public static void generateInitCentroids() throws Exception{
-		File pointFile = new File("points");
-		BufferedReader fr = new BufferedReader(new FileReader(pointFile));
-		
-		
-        File initCentroidfile = new File("initCentroids");
-		FileWriter fw = new FileWriter(initCentroidfile.getAbsoluteFile());
-		BufferedWriter bw = new BufferedWriter(fw);
-		
-		String inputLine;
-		int count = 0;
-		while((inputLine = fr.readLine()) != null && count < 20){
-			bw.write(count + ":" + inputLine + "\n");
-			count++;
-		}
-		fr.close();
-		bw.close();
-	}
-	
-	
-	public static void pullDataFromServer() throws Exception{
+	public static void main(String[] args) throws Exception{
 		long startTime = System.currentTimeMillis();
-		URL url = new URL("http://64.56.67.181/vectors.txt");
-        URLConnection conn = url.openConnection();
-        BufferedReader in = new BufferedReader(
-                                new InputStreamReader(
-                                conn.getInputStream()));
-        
-        File file = new File("points");
+		setNewCentroid();
+		String output = "";
+		for(Entry<Integer, Point> entry : newCentroids.entrySet()){
+			Node[] res = getTop10NearestPoints(entry.getValue());
+			output += entry.getKey() + ":";
+			for(int i = 0; i < res.length - 1; i++){
+				output += res[i].toString() + ",";
+			}
+			output += res[res.length - 1].toString() + "\n";
+		}
+		output.substring(0, output.length() - 1);
+		
+        File file = new File("results");
 		FileWriter fw = new FileWriter(file.getAbsoluteFile());
 		BufferedWriter bw = new BufferedWriter(fw);
-        
-        String inputLine;
-        int count = 0;
-        while ((inputLine = in.readLine()) != null){
-        	String[] data = inputLine.split("\t");
-            bw.write(data[1] + "\n");
-            count++;
-        }
-        in.close();
-        bw.close();
-        System.out.println(count + "lines are ok");
-        long endTime = System.currentTimeMillis();
-        System.out.println((endTime - startTime) + " milliseconds");
+		bw.write(output);
+		bw.close();
+		
+		long endTime = System.currentTimeMillis();
+		
+		System.out.println(endTime - startTime);
+	}
+
+	public static Node[] getTop10NearestPoints(Point center) throws Exception{
+		Node[] res = new Node[10];
+		for(int i = 0; i < res.length; i++){
+			res[i] = new Node(0.0, "");
+		}
+		
+		File pointFile = new File("points_doc");
+		BufferedReader fr = new BufferedReader(new FileReader(pointFile));
+		String inputLine;
+		while((inputLine = fr.readLine()) != null){
+			String[] data = inputLine.split("\t"); // data[0] is the doc id, data[1] is the the points information
+			String docId = data[0];
+			Point p = new Point(data[1]);
+			double distance = Point.getDistance(p, center);
+			int minIndex = 0;
+			for(int i = 1; i < res.length; i++){ // always find the minimun to insert
+				if(res[minIndex].distance > res[i].distance)
+					minIndex = i;
+			}
+			res[minIndex] = new Node(distance, docId);
+		}
+		fr.close();
+		return res;
 	}
 	
-
+	
+	
+	public static void setNewCentroid() throws Exception{
+		newCentroids = new HashMap<Integer, Point>();
+		File pointFile = new File("newCentroids");
+		BufferedReader fr = new BufferedReader(new FileReader(pointFile));
+		
+		String inputLine;
+		while((inputLine = fr.readLine()) != null){
+			String[] data = inputLine.split(":");
+			int clusterId = Integer.parseInt(data[0]);
+			Point p = new Point(data[1]);
+			newCentroids.put(clusterId, p);
+		}
+		fr.close();
+	}
+	
+	static class Node{
+		public double distance;
+		public String docId;
+		public Node(double distance, String docId){
+			this.distance = distance;
+			this.docId = docId;
+		}
+		
+		@Override
+		public String toString(){
+			return docId;
+		}
+		
+	}
+	
+	
 }

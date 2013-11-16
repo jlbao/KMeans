@@ -84,17 +84,25 @@ public class Point {
         //this is the task 3 distance calculation version
         // p1 and p2 should have same number of dimensions
         public static double getDistance(Point p1, Point p2){
-                double up = 0;
-                double xSum = 0;
-                double ySum = 0;
-                for(int i = 0; i < p1.list.size(); i++){
-                        up += p1.list.get(i) * p2.list.get(i);
-                        xSum += Math.pow(p1.list.get(i), 2);
-                        ySum += Math.pow(p2.list.get(i), 2);
-                }
-                double result = up / (Math.sqrt(xSum) * Math.sqrt(ySum));
-                return result;
-        
+            double up = 0;
+            double xSum = 0;
+            double ySum = 0;
+            for(int i = 0; i < p1.list.size(); i++){
+                    up += p1.list.get(i) * p2.list.get(i);
+                    xSum += Math.pow(p1.list.get(i), 2);
+                    ySum += Math.pow(p2.list.get(i), 2);
+            }
+            double result = up / (Math.sqrt(xSum) * Math.sqrt(ySum));
+            return result;
         }
+        
+        public static double getDistance(Point p1, Point p2, double bottom){
+            double up = 0;
+            for(int i = 0; i < p1.list.size(); i++){
+            	up += p1.list.get(i) * p2.list.get(i);
+            }
+            return up / bottom;
+        }
+        
         
 }
